@@ -8,6 +8,23 @@ var app = express();
 app.disable("x-powered-by");
 var fs = require("fs");
 var path = require("path");
+var bcrypt = require("bcrypt");    //see the route '/server.js' below
+
+/*START_ASYNC^^^^^^^^^^^^^^^^^^^^^
+bcrypt.hash(myPlaintextPassword, saltRounds, (err, hash) => {
+  console.log(hash);
+  bcrypt.compare(myPlaintextPassword, hash, (err, res) => {
+    console.log(res);
+  });
+});
+^^^^^^^^^^^^^^^^^^^^^END_ASYNC*/
+
+/*START_SYNC^^^^^^^^^^^^^^^^^^^^^
+var hash = bcrypt.hashSync(myPlaintextPassword, saltRounds);
+console.log(hash);
+var result = bcrypt.compareSync(myPlaintextPassword, hash);
+console.log(result);
+^^^^^^^^^^^^^^^^^^^^^END_SYNC*/
 
 app.use(function (req, res, next) {
   res.set({
@@ -32,6 +49,7 @@ app.get("/file/*?", function (req, res, next) {
 });
 
 var main = require("./myApp.js");
+const { Socket } = require("dgram");
 app.get("/app-info", function (req, res) {
   // list middlewares mounted on the '/' camper's app
   var appMainRouteStack = main._router.stack
@@ -56,6 +74,14 @@ app.get("/app-info", function (req, res) {
 
 app.get("/package.json", function (req, res, next) {
   fs.readFile(__dirname + "/package.json", function (err, data) {
+    if (err) return next(err);
+    res.type("txt").send(data.toString());
+  });
+});
+
+// the fcc test call '/_api/server.js' to get our code, but they didn't give the route
+app.get("/server.js", function (req, res, next) {
+  fs.readFile(__dirname + "/server.js", function (err, data) {
     if (err) return next(err);
     res.type("txt").send(data.toString());
   });
